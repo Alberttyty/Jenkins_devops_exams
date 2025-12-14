@@ -44,6 +44,7 @@ pipeline {
                                 rm -Rf .kube
                                 mkdir .kube
                                 cat \$KUBE_CONF > .kube/config
+                                export KUBECONFIG=.kube/config
                                 cp charts/values.yaml values.yml
                                 sed -i "s+repository.*+repository: \$DOCKER_ID/${SERVICE}-service+g" values.yml
                                 sed -i "s+tag.*+tag: \$DOCKER_TAG+g" values.yml
@@ -72,6 +73,7 @@ pipeline {
                             rm -Rf .kube
                             mkdir .kube
                             cat \$KUBE_CONF > .kube/config
+                            export KUBECONFIG=.kube/config
                             cp charts/values.yaml values.yml
                             sed -i "s+repository.*+repository: \$DOCKER_ID/${SERVICE}+g" values.yml
                             sed -i "s+tag.*+tag: \$DOCKER_TAG+g" values.yml
