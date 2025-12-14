@@ -4,7 +4,10 @@ pipeline {
         DOCKER_IMG_MOVIE = "movie-service"
         DOCKER_IMG_CAST = "cast-service"
         DOCKER_TAG = "v.${BUILD_ID}.0"
+
         KUBE_CONF = credentials('kubectl-config')
+
+        APP_PORT = 30007
     }
     agent any
     stages {
@@ -35,10 +38,13 @@ pipeline {
         stage('Dev deployments') {
             steps {
                 script {
+                    def envs = ['dev', 'qa', 'staging']
                     def SERVICES = ['movie', 'cast']
-                    for (ENV_NAME in ['dev', 'qa', 'staging']) {
-                        for (int i = 0; i < SERVICES.size(); ++i) {
-                            def SERVICE = SERVICES[i]
+                    for (int i = 0; i < envs.size(); ++i) {
+                        def ENV_NAME = envs[i]
+                        for (int j = 0; j < SERVICES.size(); ++j) {
+                            def SERVICE = SERVICES[j]
+                            def SERVICE_PORT = (i + 1) * 100 + APP_PORT + j
                             def SERVICE_DB = "--set db.name=${SERVICE}"
                             sh """
                                 rm -Rf .kube
@@ -49,7 +55,7 @@ pipeline {
                                 sed -i "s+repository.*+repository: \$DOCKER_ID/${SERVICE}-service+g" values.yml
                                 sed -i "s+tag.*+tag: \$DOCKER_TAG+g" values.yml
                                 
-                                sed -i "s+nodePort.*+nodePort: ${30007 + i}+g" values.yml
+                                sed -i "s+nodePort.*+nodePort: ${SERVICE_PORT}+g" values.yml
 
                                 helm upgrade --install ${SERVICE}-app charts --values=values.yml ${SERVICE_DB} --namespace ${ENV_NAME}
                             """
@@ -78,7 +84,7 @@ pipeline {
                             sed -i "s+repository.*+repository: \$DOCKER_ID/${SERVICE}+g" values.yml
                             sed -i "s+tag.*+tag: \$DOCKER_TAG+g" values.yml
                             
-                            sed -i "s+nodePort.*+nodePort: ${30007 + i}+g" values.yml
+                            sed -i "s+nodePort.*+nodePort: ${APP_PORT + i}+g" values.yml
                             
                             helm upgrade --install ${SERVICE}-app charts --values=values.yml ${SERVICE_DB} --namespace prod
                         """
