@@ -83,7 +83,7 @@ pipeline {
                             sed -i "s+repository.*+repository: \$DOCKER_ID/${SERVICE}+g" values.yml
                             sed -i "s+tag.*+tag: \$DOCKER_TAG+g" values.yml
                             
-                            sed -i "s+nodePort.*+nodePort: ${APP_PORT + i}+g" values.yml
+                            sed -i "s+nodePort.*+nodePort: ${APP_PORT.toInteger() + i}+g" values.yml
                             
                             helm upgrade --install ${SERVICE}-app charts --values=values.yml ${SERVICE_DB} --namespace prod --set image.repository=\$DOCKER_ID/${SERVICE}-service --set image.tag=\$DOCKER_TAG
                         """
