@@ -44,7 +44,7 @@ pipeline {
                         def ENV_NAME = envs[i]
                         for (int j = 0; j < SERVICES.size(); ++j) {
                             def SERVICE = SERVICES[j]
-                            def SERVICE_PORT = (i + 1) * 100 + APP_PORT + j
+                            def SERVICE_PORT = (i + 1) * 100 + APP_PORT.toInteger() + j
                             def SERVICE_DB = "--set db.name=${SERVICE}"
                             sh """
                                 rm -Rf .kube
