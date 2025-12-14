@@ -39,17 +39,19 @@ pipeline {
                     def services = ['movie-service', 'cast-service']
                     for (env in envs) {
                         for (int i = 0; i < services.size(); ++i) {
+                            def service = services[i]
+                            def dbService = "--set db.name=${service}"
                             sh """
                                 rm -Rf .kube
                                 mkdir .kube
                                 cat \${KUBE_CONF} > .kube/config
                                 cp charts/values.yaml values.yml
-                                sed -i 's+repository.*+repository: \${DOCKER_ID}/\${services[i]}+g' values.yml
+                                sed -i 's+repository.*+repository: \${DOCKER_ID}/\${service}+g' values.yml
                                 sed -i 's+tag.*+tag: \${DOCKER_TAG}+g' values.yml
                                 
                                 sed -i 's+nodePort.*+nodePort: \${30007 + i}+g' values.yml
 
-                                helm upgrade --install \${services[i]}-app charts --values=values.yml --namespace \${env}
+                                helm upgrade --install \${service}-app charts --values=values.yml \${dbService} --namespace \${env}
                             """
                         }
                     }
@@ -65,17 +67,19 @@ pipeline {
                 script {
                     def services = ['movie-service', 'cast-service']
                     for (int i = 0; i < services.size(); ++i) {
+                        def service = services[i]
+                        def dbService = "--set db.name=${service}"
                         sh """
                             rm -Rf .kube
                             mkdir .kube
                             cat \${KUBE_CONF} > .kube/config
                             cp charts/values.yaml values.yml
-                            sed -i 's+repository.*+repository: \${DOCKER_ID}/\${services[i]}+g' values.yml
+                            sed -i 's+repository.*+repository: \${DOCKER_ID}/\${service}+g' values.yml
                             sed -i 's+tag.*+tag: \${DOCKER_TAG}+g' values.yml
                             
                             sed -i 's+nodePort.*+nodePort: \${30007 + i}+g' values.yml
                             
-                            helm upgrade --install \${services[i]}-app charts --values=values.yml --namespace prod
+                            helm upgrade --install \${service}-app charts --values=values.yml \${dbService} --namespace prod
                         """
                     }
                 }

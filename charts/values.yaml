@@ -83,3 +83,9 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+# Database configurations
+db:
+  name: service
+  image: postgres:12.1-alpine
+  port: 5432

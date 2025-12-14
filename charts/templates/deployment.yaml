@@ -37,6 +37,12 @@ spec:
             - name: http
               containerPort: 8000
               protocol: TCP
+          env:
+            - name: DATABASE_URI
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.db.name }}-db-secret
+                  key: DATABASE_URI
           livenessProbe:
             httpGet:
               path: /api/v1/checkapi

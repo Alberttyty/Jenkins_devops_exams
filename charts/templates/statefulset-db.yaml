@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Values.db.name }}-db
+  labels:
+    {{- include "fastapiapp.labels" $ | nindent 4 }}
+    app: {{ .Values.db.name }}-db
+spec:
+  serviceName: {{ .Values.db.name }}-db
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "fastapiapp.selectorLabels" $ | nindent 6 }}
+      app: {{ .Values.db.name }}-db
+  template:
+    metadata:
+      labels:
+        {{- include "fastapiapp.selectorLabels" $ | nindent 8 }}
+        app: {{ .Values.db.name }}-db
+    spec:
+      containers:
+        - name: postgres
+          image: "{{ .image }}"
+          ports:
+            - name: postgres
+              containerPort: {{ .port }}
+              protocol: TCP
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.db.name }}-db-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.db.name }}-db-secret
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.db.name }}-db-secret
+                  key: POSTGRES_DB
+          volumeMounts:
+            - name: postgres-data-{{ .Values.db.name }}
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: postgres-data-{{ .Values.db.name }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.db.name }}-db-pvc
+  volumeClaimTemplates:
+    - metadata:
+        name: postgres-data-{{ .Values.db.name }}
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 1Gi
