@@ -12,16 +12,6 @@ pipeline {
     agent any
     stages {
         stage('Docker build') {
-            steps {
-                script {
-                    sh '''
-                        docker build -t $DOCKER_ID/$DOCKER_IMG_MOVIE:$DOCKER_TAG ./movie-service
-                        docker build -t $DOCKER_ID/$DOCKER_IMG_CAST:$DOCKER_TAG ./cast-service
-                    '''
-                }
-            }
-        }
-        stage('Docker push') {
             environment {
                 DOCKER_PASS = credentials('DOCKER_HUB_PASS')
             }
@@ -29,6 +19,10 @@ pipeline {
                 script {
                     sh '''
                         docker login -u $DOCKER_ID -p $DOCKER_PASS
+
+                        docker build -t $DOCKER_ID/$DOCKER_IMG_MOVIE:$DOCKER_TAG ./$DOCKER_IMG_MOVIE
+                        docker build -t $DOCKER_ID/$DOCKER_IMG_CAST:$DOCKER_TAG ./$DOCKER_IMG_CAST
+
                         docker push $DOCKER_ID/$DOCKER_IMG_MOVIE:$DOCKER_TAG
                         docker push $DOCKER_ID/$DOCKER_IMG_CAST:$DOCKER_TAG
                     '''
