@@ -35,23 +35,22 @@ pipeline {
         stage('Dev deployments') {
             steps {
                 script {
-                    def envs = ['dev', 'qa', 'staging']
-                    def services = ['movie-service', 'cast-service']
-                    for (env in envs) {
-                        for (int i = 0; i < services.size(); ++i) {
-                            def service = services[i]
-                            def dbService = "--set db.name=${service}"
+                    def SERVICES = ['movie', 'cast']
+                    for (ENV_NAME in ['dev', 'qa', 'staging']) {
+                        for (int i = 0; i < SERVICES.size(); ++i) {
+                            def SERVICE = SERVICES[i]
+                            def SERVICE_DB = "--set db.name=${SERVICE}"
                             sh """
                                 rm -Rf .kube
                                 mkdir .kube
-                                cat \${KUBE_CONF} > .kube/config
+                                cat \$KUBE_CONF > .kube/config
                                 cp charts/values.yaml values.yml
-                                sed -i 's+repository.*+repository: \${DOCKER_ID}/\${service}+g' values.yml
-                                sed -i 's+tag.*+tag: \${DOCKER_TAG}+g' values.yml
+                                sed -i "s+repository.*+repository: \$DOCKER_ID/${SERVICE}-service+g" values.yml
+                                sed -i "s+tag.*+tag: \$DOCKER_TAG+g" values.yml
                                 
-                                sed -i 's+nodePort.*+nodePort: \${30007 + i}+g' values.yml
+                                sed -i "s+nodePort.*+nodePort: ${30007 + i}+g" values.yml
 
-                                helm upgrade --install \${service}-app charts --values=values.yml \${dbService} --namespace \${env}
+                                helm upgrade --install ${SERVICE}-app charts --values=values.yml ${SERVICE_DB} --namespace ${ENV_NAME}
                             """
                         }
                     }
@@ -65,21 +64,21 @@ pipeline {
             steps {
                 input message: 'Proceed to production deployment ?'
                 script {
-                    def services = ['movie-service', 'cast-service']
-                    for (int i = 0; i < services.size(); ++i) {
-                        def service = services[i]
-                        def dbService = "--set db.name=${service}"
+                    def SERVICES = ['movie', 'cast']
+                    for (int i = 0; i < SERVICES.size(); ++i) {
+                        def SERVICE = SERVICES[i]
+                        def SERVICE_DB = "--set db.name=${SERVICE}"
                         sh """
                             rm -Rf .kube
                             mkdir .kube
-                            cat \${KUBE_CONF} > .kube/config
+                            cat \$KUBE_CONF > .kube/config
                             cp charts/values.yaml values.yml
-                            sed -i 's+repository.*+repository: \${DOCKER_ID}/\${service}+g' values.yml
-                            sed -i 's+tag.*+tag: \${DOCKER_TAG}+g' values.yml
+                            sed -i "s+repository.*+repository: \$DOCKER_ID/${SERVICE}+g" values.yml
+                            sed -i "s+tag.*+tag: \$DOCKER_TAG+g" values.yml
                             
-                            sed -i 's+nodePort.*+nodePort: \${30007 + i}+g' values.yml
+                            sed -i "s+nodePort.*+nodePort: ${30007 + i}+g" values.yml
                             
-                            helm upgrade --install \${service}-app charts --values=values.yml \${dbService} --namespace prod
+                            helm upgrade --install ${SERVICE}-app charts --values=values.yml ${SERVICE_DB} --namespace prod
                         """
                     }
                 }
