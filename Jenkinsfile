@@ -60,10 +60,15 @@ pipeline {
         }
         stage('Prod deployment') {
             when {
-                branch 'master'
+                expression {
+                    env.GIT_BRANCH == 'origin/master'
+                }
             }
             steps {
-                input message: 'Proceed to production deployment ?'
+                input(
+                    message: 'Do you want to deploy in production ?',
+                    ok: 'Yes'
+                )
                 script {
                     def SERVICES = ['movie', 'cast']
                     for (int i = 0; i < SERVICES.size(); ++i) {
